@@ -30,7 +30,7 @@ Void app_main(void) {
     adc_oneshot_read(adc1_handle, ADC_CHANNEL_6, &raw);
 
     timer_config_t timer_config = { 
-        .divider = 80, // 1 us per tick
+        .divider = 8000, 
         .counter_dir = TIMER_COUNT_UP,
         .counter_en = TIMER_PAUSE,
         .alarm_en = TIMER_ALARM_EN,
@@ -40,13 +40,12 @@ Void app_main(void) {
 }
 
 
-
 void mcp4132_read_register (uint8_t reg_addr, uint8_t *data) {
     spi_transaction_t t;
     memset(&t, 0, sizeof(t));
-    t.length = 16; // es de 16 bits el mensaje
+    t.length = 16;
     t.tx_buffer = (uint8_t[]){0x00 | (reg_addr & 0x7F), 0x00}; 
-    t.rx_buffer = data; // Buffer to store the read data
+    t.rx_buffer = data;
 
     spi_device_transmit(spi_handle, &t);
 }
@@ -58,3 +57,11 @@ void mcp4132_write_register (uint8_t reg_addr, uint8_t value) {
     t.tx_buffer = (uint8_t[]){0x80 | (reg_addr & 0x7F), value}; 
 }
 
+void set_wiper(uint8_t value) {
+    mcp4132_write_register(0x00, value); 
+}
+
+void mcp4132_set_cutoff_frecuency(uint32_t frequency) {
+    uint8_t wiper_value = (frequency / 1000) & 0xFF; 
+    set_wiper(wiper_value);
+}
